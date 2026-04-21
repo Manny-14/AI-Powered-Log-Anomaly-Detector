@@ -1,0 +1,89 @@
+name: Scheduled Dashboard Deploy
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy drain3 scipy scikit-learn joblib
+
+      - name: Run pipeline when data exists
+        id: pipeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f data/HDFS.csv && -f data/anomaly_label.csv ]]; then
+            make pipeline
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          else
+            mkdir -p outputs preprocessed
+            echo "status=missing_data" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run LLM summary when secret exists
+        id: summary
+        shell: bash
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.pipeline.outputs.status }}" == "success" && -n "${GEMINI_API_KEY}" ]]; then
+            make summarize
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ steps.pipeline.outputs.status }}" != "success" ]]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=missing_api_key" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build dashboard snapshot
+        run: |
+          python scripts/build_dashboard_snapshot.py \
+            --status "${{ steps.pipeline.outputs.status }}" \
+            --summary-status "${{ steps.summary.outputs.status }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --output dashboard/data/latest.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

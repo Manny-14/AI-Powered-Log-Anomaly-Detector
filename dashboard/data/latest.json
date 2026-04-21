@@ -1,0 +1,14 @@
+{
+  "generated_at_utc": "2026-04-21T06:04:14.955947+00:00",
+  "pipeline_status": "missing_data",
+  "summary_status": "skipped",
+  "run_url": "https://github.com/Manny-14/LAD/actions",
+  "has_data": false,
+  "summary_metrics": {},
+  "top_anomalies": [],
+  "llm_summary": null,
+  "notes": [
+    "No summary artifact found. Add data/HDFS.csv and data/anomaly_label.csv.",
+    "No LLM summary found. Set GEMINI_API_KEY in repository secrets."
+  ]
+}

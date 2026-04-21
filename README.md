@@ -47,3 +47,41 @@ or inline for a single invocation:
 ```bash
 GEMINI_API_KEY='YOUR_KEY' make summarize
 ```
+
+## Deployment for grading (live link + scheduled batch)
+
+This repo includes a deployment flow that gives you a public link your instructor can open.
+
+- Workflow: `.github/workflows/scheduled-dashboard.yml`
+- Dashboard page: `dashboard/index.html`
+- Snapshot generator: `scripts/build_dashboard_snapshot.py`
+
+### What the deployed page shows
+
+- Latest pipeline status
+- LLM summary status
+- Anomaly count and top anomaly rows
+- Latest generated anomaly summary text (if available)
+- Link to the latest GitHub Actions run
+
+### Why the instructor does not need your API key
+
+The Gemini key is stored in repository secrets and used only inside GitHub Actions.
+The dashboard displays generated output artifacts, not secrets.
+
+### Setup steps
+
+1. Add repository secret: `GEMINI_API_KEY`.
+2. Commit and push the workflow/dashboard files.
+3. In GitHub: Settings -> Pages -> Source = GitHub Actions.
+4. Run `Scheduled Dashboard Deploy` once from the Actions tab.
+5. Use the GitHub Pages URL as your submission link.
+
+### Data requirement
+
+To run the full pipeline in CI, include:
+
+- `data/HDFS.csv`
+- `data/anomaly_label.csv`
+
+If data is missing, the page still deploys and clearly reports `missing_data`.
