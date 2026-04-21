@@ -85,3 +85,29 @@ To run the full pipeline in CI, include:
 - `data/anomaly_label.csv`
 
 If data is missing, the page still deploys and clearly reports `missing_data`.
+
+## For instructor
+
+This submission includes a live deployment link (GitHub Pages dashboard) that shows:
+
+- current pipeline execution status
+- latest LLM anomaly summary
+- top anomaly rows and latest workflow run link
+
+If deployment is temporarily unavailable, the project can be reproduced locally:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install pandas numpy drain3 scipy scikit-learn joblib
+
+make pipeline
+make summarize
+```
+
+Expected artifacts after local run:
+
+- `outputs/isolation_forest_predictions.csv`
+- `outputs/pipeline_run_summary.json`
+- `outputs/anomaly_summary.txt`

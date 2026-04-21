@@ -106,7 +106,10 @@
 
           const metrics = d.summary_metrics || {};
           document.getElementById('count').textContent =
-            metrics.total_anomalies_detected ?? metrics.anomaly_count ?? 'n/a';
+            metrics.total_anomalies_detected
+            ?? metrics.anomaly_count
+            ?? metrics.prediction_stats?.anomalies_flagged
+            ?? 'n/a';
           document.getElementById('updated').textContent = d.generated_at_utc || 'n/a';
           document.getElementById('summaryText').textContent = d.llm_summary || 'No LLM summary available yet.';
 
