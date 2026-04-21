@@ -1,8 +1,17 @@
 name: Scheduled Dashboard Deploy
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "data/**"
+      - "scripts/**"
+      - "ml_models/**"
+      - "cmd/**"
+      - "internal/**"
+      - "Makefile"
+      - ".github/workflows/scheduled-dashboard.yml"
   workflow_dispatch:
 
 permissions:
@@ -60,8 +69,12 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${{ steps.pipeline.outputs.status }}" == "success" && -n "${GEMINI_API_KEY}" ]]; then
-            make summarize
-            echo "status=success" >> "$GITHUB_OUTPUT"
+            if make summarize; then
+              echo "status=success" >> "$GITHUB_OUTPUT"
+            else
+              # Preserve dashboard deployment even when API quota/availability causes summarization failure.
+              echo "status=api_error" >> "$GITHUB_OUTPUT"
+            fi
           elif [[ "${{ steps.pipeline.outputs.status }}" != "success" ]]; then
             echo "status=skipped" >> "$GITHUB_OUTPUT"
           else
