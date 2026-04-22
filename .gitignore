@@ -1,0 +1,39 @@
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+.venv*/
+venv/
+env/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS / editor
+.DS_Store
+.vscode/
+
+# Generated pipeline outputs
+outputs/
+preprocessed/
+
+# Trained model artifacts
+*.joblib
+
+# Local and sensitive datasets (keep out of git)
+data/HDFS.csv
+data/HDFS.log
+data/anomaly_label.csv
+data/HDFS.npz
+data/HDFS_2k.log_structured.csv
+
+# Final Instructions
+final_report_instructions/

@@ -83,11 +83,21 @@ jobs:
 
       - name: Build dashboard snapshot
         run: |
-          python scripts/build_dashboard_snapshot.py \
-            --status "${{ steps.pipeline.outputs.status }}" \
-            --summary-status "${{ steps.summary.outputs.status }}" \
-            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --output dashboard/data/latest.json
+          if [[ "${{ steps.pipeline.outputs.status }}" == "success" ]]; then
+            python scripts/build_dashboard_snapshot.py \
+              --status "${{ steps.pipeline.outputs.status }}" \
+              --summary-status "${{ steps.summary.outputs.status }}" \
+              --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --output dashboard/data/latest.json
+          elif [[ -f dashboard/data/latest.json ]]; then
+            echo "Keeping existing dashboard/data/latest.json because pipeline data is unavailable."
+          else
+            python scripts/build_dashboard_snapshot.py \
+              --status "${{ steps.pipeline.outputs.status }}" \
+              --summary-status "${{ steps.summary.outputs.status }}" \
+              --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --output dashboard/data/latest.json
+          fi
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
