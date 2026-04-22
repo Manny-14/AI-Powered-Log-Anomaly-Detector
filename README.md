@@ -24,6 +24,19 @@ Run everything with:
 make pipeline
 ```
 
+By default, the Makefile uses the lightweight tracked sample dataset:
+
+- `data/HDFS_2k.csv`
+- `data/HDFS_2k.log`
+- `data/anomaly_label_2k.csv`
+
+To run against a full local dataset (not tracked in git), override paths explicitly:
+
+```bash
+make pipeline DATA_CSV=data/HDFS.csv LABELS_CSV=data/anomaly_label.csv
+make summarize LOG_PATH=data/HDFS.log
+```
+
 Then summarize:
 
 ```bash
@@ -81,8 +94,9 @@ The dashboard displays generated output artifacts, not secrets.
 
 To run the full pipeline in CI, include:
 
-- `data/HDFS.csv`
-- `data/anomaly_label.csv`
+- `data/HDFS_2k.csv`
+- `data/HDFS_2k.log`
+- `data/anomaly_label_2k.csv`
 
 If data is missing, the page still deploys and clearly reports `missing_data`.
 
@@ -104,6 +118,13 @@ pip install pandas numpy drain3 scipy scikit-learn joblib
 
 make pipeline
 make summarize
+```
+
+To use full local data instead of the tracked sample:
+
+```bash
+make pipeline DATA_CSV=data/HDFS.csv LABELS_CSV=data/anomaly_label.csv
+make summarize LOG_PATH=data/HDFS.log
 ```
 
 Expected artifacts after local run:

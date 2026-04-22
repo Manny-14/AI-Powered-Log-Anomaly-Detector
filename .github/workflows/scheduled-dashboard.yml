@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -f data/HDFS.csv && -f data/anomaly_label.csv ]]; then
+          if [[ -f data/HDFS_2k.csv && -f data/anomaly_label_2k.csv ]]; then
             make pipeline
             echo "status=success" >> "$GITHUB_OUTPUT"
           else

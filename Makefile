@@ -1,6 +1,6 @@
 PYTHON ?= python
-DATA_CSV ?= data/HDFS.csv
-LABELS_CSV ?= data/anomaly_label.csv
+DATA_CSV ?= data/HDFS_2k.csv
+LABELS_CSV ?= data/anomaly_label_2k.csv
 STRUCTURED_CSV ?= preprocessed/HDFS.log_structured.csv
 TEMPLATES_JSON ?= preprocessed/HDFS_templates.json
 EVENT_MAP_JSON ?= preprocessed/event_id_map.json
@@ -12,7 +12,7 @@ THRESHOLD_JSON ?= ml_models/isolation_forest_threshold.json
 PREDICTIONS_CSV ?= outputs/isolation_forest_predictions.csv
 SUMMARY_JSON ?= outputs/pipeline_run_summary.json
 SUMMARY_TEXT ?= outputs/anomaly_summary.txt
-LOG_PATH ?= data/HDFS.log
+LOG_PATH ?= data/HDFS_2k.log
 SUMMARY_TOP ?= 20
 GEMINI_MODEL ?= gemini-2.5-flash
 GO ?= go
