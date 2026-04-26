@@ -48,6 +48,16 @@
       .chip { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e8efeb; font-size: 12px; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--muted); }
       a { color: #146a51; }
+      #summaryText { line-height: 1.5; }
+      #summaryText h3 { margin: 0.4em 0; font-size: 16px; }
+      #summaryText p { margin: 0.5em 0; }
+      #summaryText ul, #summaryText ol { margin: 0.4em 0 0.8em 1.2em; }
+      #summaryText code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: #f1f4f2;
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
     </style>
   </head>
   <body>
@@ -91,6 +101,83 @@
         return 'bad';
       }
 
+      function escapeHtml(s) {
+        return s
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      function inlineFormat(s) {
+        return s
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>');
+      }
+
+      function renderSummary(raw) {
+        if (!raw || !raw.trim()) {
+          return 'No LLM summary available yet.';
+        }
+
+        let text = escapeHtml(raw.trim()).replace(/\r\n/g, '\n');
+
+        // If model output comes as one long line, insert breaks before markdown section labels.
+        if (!text.includes('\n')) {
+          text = text.replace(/\s(?=\*\*[A-Za-z][^*]{1,80}\*\*:)/g, '\n');
+        }
+
+        const lines = text
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+
+        let html = '';
+        let listMode = null; // 'ul' | 'ol'
+
+        function closeList() {
+          if (listMode) {
+            html += `</${listMode}>`;
+            listMode = null;
+          }
+        }
+
+        for (const line of lines) {
+          const ordered = line.match(/^(\d+)\.\s+(.*)$/);
+          const unordered = line.match(/^\*\s+(.*)$/);
+
+          if (ordered) {
+            if (listMode !== 'ol') {
+              closeList();
+              html += '<ol>';
+              listMode = 'ol';
+            }
+            html += `<li>${inlineFormat(ordered[2])}</li>`;
+            continue;
+          }
+
+          if (unordered) {
+            if (listMode !== 'ul') {
+              closeList();
+              html += '<ul>';
+              listMode = 'ul';
+            }
+            html += `<li>${inlineFormat(unordered[1])}</li>`;
+            continue;
+          }
+
+          closeList();
+
+          if (/^\*\*[^*]+\*\*$/.test(line)) {
+            html += `<h3>${inlineFormat(line)}</h3>`;
+          } else {
+            html += `<p>${inlineFormat(line)}</p>`;
+          }
+        }
+
+        closeList();
+        return html || 'No LLM summary available yet.';
+      }
+
       async function main() {
         try {
           const res = await fetch('data/latest.json', { cache: 'no-store' });
@@ -111,7 +198,7 @@
             ?? metrics.prediction_stats?.anomalies_flagged
             ?? 'n/a';
           document.getElementById('updated').textContent = d.generated_at_utc || 'n/a';
-          document.getElementById('summaryText').textContent = d.llm_summary || 'No LLM summary available yet.';
+          document.getElementById('summaryText').innerHTML = renderSummary(d.llm_summary || '');
 
           const rows = d.top_anomalies || [];
           const rowsEl = document.getElementById('rows');
